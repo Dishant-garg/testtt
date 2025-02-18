@@ -1,0 +1,13 @@
+streamlit
+PyPDF2
+transformers
+torch
+requests
+google-generativeai
+langchain
+python-dotenv
+nltk
+gensim
+keybert
+sentence-transformers
+pot
