@@ -12,3 +12,4 @@ keybert
 sentence-transformers
 pot
 langchain_community
+scipy==1.10.1
