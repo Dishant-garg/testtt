@@ -13,3 +13,4 @@ sentence-transformers
 pot
 langchain_community
 scipy==1.12
+openai
