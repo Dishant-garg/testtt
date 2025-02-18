@@ -34,6 +34,7 @@ if 'keywords' not in st.session_state:
 
 # Download NLTK resources
 nltk.download('punkt')
+nltk.download('punkt_tab')
 nltk.download('stopwords')
 
 # Set page config
