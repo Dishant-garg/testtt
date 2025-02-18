@@ -300,7 +300,7 @@ def compressive_summary_page():
                 draft = compressiveSummary(combined_text, year)
                 final = summaryFilter(draft)
                 st.subheader("Formatted Literature Review")
-                st.markdown(f"```\n{final}\n```")
+                st.text_area("Formatted Literature Review", final, height=100)
             except Exception as e:
                 st.error(f"Generation Error: {str(e)}")
 
