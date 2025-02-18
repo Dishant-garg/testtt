@@ -46,7 +46,7 @@ def load_models():
     return {
         'keybert': KeyBERT('distilbert-base-nli-mean-tokens'),
         'word2vec': KeyedVectors.load_word2vec_format(
-            '/Users/dishantgarg/Documents/untitled folder/content/word2vec-slim/GoogleNews-vectors-negative300-SLIM.bin.gz',
+            '/Users/dishantgarg/Documents/testtt/content/word2vec-slim/GoogleNews-vectors-negative300-SLIM.bin.gz',
             binary=True
         )
     }

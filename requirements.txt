@@ -11,3 +11,4 @@ gensim
 keybert
 sentence-transformers
 pot
+langchain_community
