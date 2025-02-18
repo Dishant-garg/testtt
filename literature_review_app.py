@@ -107,10 +107,6 @@ def summaryUsingGpt3(text):
 #     outputs = model.generate(inputs, max_length=150)
 #     return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-# def summaryUsingTransformer(text):
-#     summarizer = pipeline('summarization')
-#     return summarizer(text, max_length=150, min_length=30)[0]['summary_text']
-
 # def summaryUsingBart(text):
 #     tokenizer = BartTokenizer.from_pretrained('facebook/bart-large-cnn')
 #     model = BartForConditionalGeneration.from_pretrained('facebook/bart-large-cnn')
@@ -286,7 +282,7 @@ def related_papers_page():
                 st.error(f"Search Error: {str(e)}")
 
 def compressive_summary_page():
-    st.header("📚 Literature Review Builder")
+    st.header("📚 Literature Review/Related Work")
     if not st.session_state.processed:
         st.warning("Please process a PDF first on the Home page")
         return
