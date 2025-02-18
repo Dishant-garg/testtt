@@ -201,7 +201,7 @@ def summaryFilter(text):
 
 # --- UI Components ---
 def home_page():
-    st.header("📄 Research Paper Processor")
+    st.header("📄 ELitSumm: Leveraging Ensemble of LLMs for Automatic Literature Work Generation")
     uploaded_file = st.file_uploader("Upload research paper (PDF)", type=["pdf"])
     
     if uploaded_file:
