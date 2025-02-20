@@ -1,4 +1,2 @@
-#!/bin/bash
-python3 -m nltk.downloader punkt
-python3 -m nltk.downloader stopwords
-python3 -m nltk.downloader punkt_tab
+mkdir -p ~/.nltk_data
+python -c "import nltk; nltk.download('punkt', download_dir='~/.nltk_data'); nltk.download('stopwords', download_dir='~/.nltk_data')"
