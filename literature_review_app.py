@@ -79,23 +79,23 @@ def extractKeyword(text):
     return llm(chat_messages).content
 
 # --- Summarization Functions ---
-def summaryUsingGpt4(text):
+def summaryUsingGpt4(text, word_count=50):
     chat_messages = [
         SystemMessage(content='You are an expert academic summarizer'),
-        HumanMessage(content=f'Summarize this in 50 words:\n{text}')
+        HumanMessage(content=f'Summarize this in {word_count} words:\n{text}')
     ]
     llm = ChatOpenAI(model_name='gpt-4')
     return llm(chat_messages).content
 
-def summaryUsingGemini(text):
+def summaryUsingGemini(text, word_count=50):
     model = genai.GenerativeModel('gemini-pro')
-    response = model.generate_content(f'Summarize this in 50 words: {text}')
+    response = model.generate_content(f'Summarize this in {word_count} words: {text}')
     return response.text
 
-def summaryUsingGpt3(text):
+def summaryUsingGpt3(text, word_count=50):
     chat_messages = [
         SystemMessage(content='You are an expert academic summarizer'),
-        HumanMessage(content=f'Summarize this in 50 words:\n{text}')
+        HumanMessage(content=f'Summarize this in {word_count} words:\n{text}')
     ]
     llm = ChatOpenAI(model_name='gpt-3.5-turbo')
     return llm(chat_messages).content
@@ -133,7 +133,7 @@ def calculate_combined_score(year, citation_count, wmd_similarity):
     return (0.3 * (2024 - year)) + (0.3 * citation_count) + (0.4 * (1 - wmd_similarity))
 
 S2_API_KEY = "91JejA8b7l6c5vlyXLqm145uPbcuKfXQ49pxbmem"
-def find_papers(keywords, num_papers=10):
+def find_papers(keywords, num_papers=10, offset=0):
     papers = {}
     try:
         response = requests.get(
@@ -142,7 +142,8 @@ def find_papers(keywords, num_papers=10):
             params={
                 'query': " ".join(keywords),
                 'fields': 'title,abstract,url,year,citationCount,authors',
-                'limit': num_papers
+                'limit': num_papers,
+                'offset': offset
             }
         )
         
@@ -161,6 +162,7 @@ def find_papers(keywords, num_papers=10):
                 papers[paper.get('paperId', 'Unknown')] = {
                     'title': paper['title'],
                     'abstract': paper['abstract'],
+                    'authors': paper.get('authors', []),
                     'year': paper.get('year', 'Unknown'),
                     'citations': paper.get('citationCount', 0),
                     'url': paper.get('url', '#'),
@@ -179,19 +181,19 @@ def find_papers(keywords, num_papers=10):
 # --- Compressive Summary Functions ---
 def compressiveSummary(text, year):
     chat_messages = [
-        SystemMessage(content='You are an expert academic writer'),
-        HumanMessage(content=f'''Create a 50-word compressive summary with author mentions:
-        {text} - Published in {year}''')
-    ]
+        SystemMessage(content='You are an expert assistant with expertize in compressive summarization of text given to you. By extractive summarization i mean that the words/sentences occuring in the text should appear as it in the summary,but only pick the important words and sentences that carry important meaning'),#systemMessages tell out model that it is an expert who can summarize paragraphs
+    HumanMessage(content=f'''Please provide a short and concise summary of the following paragraphs, in about 40-60 words.
+     that paper has been mentioned some relevant sentence like the authors x et.al. emphasised/discussued/proposed/investigated/analysed to give a start to the summary.Always use this et. al. after author's surname if only two authors in paper write the authors name add authors by & , no need need to use et al when two authors .no need to write the title of the paper in the summary.The authors name should definitely come in the  summary
+    Generate in 35-50 words. Also write the  year in brackets immediately after the author's Surname et al.and write the citied paper number  :\n TEXT: {text}{year}''')
+  ]
     llm = ChatOpenAI(model_name='gpt-4')
     return llm(chat_messages).content
 
 def summaryFilter(text):
     chat_messages = [
-        SystemMessage(content='You are an academic editor'),
-        HumanMessage(content=f'''Remove non-academic content from:
-        {text}''')
-    ]
+        SystemMessage(content='You are an expert assistant with expertize in filtering the text given to you. The text given to you is the generated literature review by my model and it comprises of few sentences of the form author1 et al.... so this is the right format and any useless sentences having no significance should be removed.'),#systemMessages tell out model that it is an expert who can summarize paragraphs
+    HumanMessage(content=f'''Please filter the text given to you. The summary should have sentences like 'author xyz -content...' And if any other irrelevant sentence is present in the text given then that must be removed. The text given to you is the generated related work and that should be generally of the form 'author 1 et al content'   {text}''')
+  ]
     llm = ChatOpenAI(model_name='gpt-4')
     return llm(chat_messages).content
 
@@ -233,27 +235,43 @@ def summary_page():
         st.warning("Please process a PDF first on the Home page")
         return
     
-    method = st.selectbox("Select Summarization Method", [
-        "GPT-4", "Gemini", "GPT-3.5", "T5", "BART"
-    ])
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        method = st.selectbox("Select Summarization Method", [
+            "GPT-4", "Gemini", "GPT-3.5", "T5", "BART"
+        ])
+    with col2:
+        word_count = st.number_input("Summary Length (words)", 
+                                    min_value=20, 
+                                    max_value=500, 
+                                    value=50,
+                                    step=10,
+                                    help="Set the desired length of your summary in words")
     
     if st.button("Generate Summary"):
         combined_text = f"{st.session_state.title}\n{st.session_state.abstract}"
-        with st.spinner(f"Generating with {method}..."):
+        with st.spinner(f"Generating {word_count}-word summary with {method}..."):
             try:
                 if method == "GPT-4":
-                    result = summaryUsingGpt4(combined_text)
+                    result = summaryUsingGpt4(combined_text, word_count)
                 elif method == "Gemini":
-                    result = summaryUsingGemini(combined_text)
+                    result = summaryUsingGemini(combined_text, word_count)
                 elif method == "GPT-3.5":
-                    result = summaryUsingGpt3(combined_text)
+                    result = summaryUsingGpt3(combined_text, word_count)
                 elif method == "T5":
-                    result = summaryUsingGemini(combined_text)
+                    # Note: For T5 and BART implementations, you'll need to add length control
+                    # This is a placeholder that temporarily uses Gemini
+                    result = summaryUsingGemini(combined_text, word_count)
                 elif method == "BART":
-                    result = summaryUsingGemini(combined_text)
+                    # Placeholder using Gemini until BART is implemented with length control
+                    result = summaryUsingGemini(combined_text, word_count)
                 
                 st.subheader("Generated Summary")
-                st.text_area("Generated Summary", result, height=100)
+                st.text_area("Generated Summary", result, height=150)
+                
+                # Word count verification
+                actual_word_count = len(result.split())
+                st.caption(f"Generated summary contains {actual_word_count} words")
                 
             except Exception as e:
                 st.error(f"Summarization Error: {str(e)}")
@@ -286,19 +304,77 @@ def compressive_summary_page():
     if not st.session_state.processed:
         st.warning("Please process a PDF first on the Home page")
         return
-    
-    year = st.number_input("Publication Year", min_value=1900, max_value=2024, value=2023)
-    
-    if st.button("Generate Academic Summary"):
-        combined_text = f"{st.session_state.title}\n{st.session_state.abstract}"
-        with st.spinner("Building Literature Review..."):
+
+    # User controls
+    num_papers = st.number_input("Number of Papers to Include", 
+                               min_value=1, max_value=50, value=10)
+    sort_by = st.selectbox("Sort Papers By", ["Relevance Score", "Recent First", "Citation Count"])
+
+    if st.button("Generate Literature Review"):
+        with st.spinner("🔍 Finding relevant papers and generating review..."):
             try:
-                draft = compressiveSummary(combined_text, year)
-                final = summaryFilter(draft)
-                st.subheader("Formatted Literature Review")
-                st.text_area("Formatted Literature Review", final, height=100)
+                # Fetch papers with user-specified quantity
+                _, keywords = summarize_text(f"{st.session_state.title} {st.session_state.abstract}")
+                papers = find_papers(keywords, num_papers=num_papers)
+                
+                if not papers:
+                    st.error("No relevant papers found.")
+                    return
+
+                # Sort papers based on user selection
+                sort_keys = {
+                    "Relevance Score": lambda x: x[1]['score'],
+                    "Recent First": lambda x: -x[1]['year'],
+                    "Citation Count": lambda x: -x[1]['citations']
+                }
+                sorted_papers = sorted(papers.items(), 
+                                     key=sort_keys[sort_by], 
+                                     reverse=True)
+
+                # Generate formatted summaries
+                literature_entries = []
+                for pid, paper in sorted_papers[:num_papers]:
+                    # Author formatting
+                    authors = paper.get('authors', [])
+                    if authors:
+                        surnames = [a['name'].split()[-1] for a in authors if 'name' in a]
+                        if len(surnames) > 2:
+                            authors_str = f"{surnames[0]} et al."
+                        else:
+                            authors_str = " & ".join(surnames)
+                    else:
+                        authors_str = "Unknown Authors"
+
+                    # Generate compressive summary
+                    paper_text = f"Title: {paper['title']}\nAbstract: {paper['abstract']}"
+                    summary = compressiveSummary(paper_text, paper.get('year', 'N/A'))
+                    filtered_summary = summaryFilter(summary)
+
+                    literature_entries.append(
+                        f"**{authors_str} ({paper.get('year', 'N/A')})** " 
+                        f"[{paper['title']}]({paper['url']}): {filtered_summary}"
+                    )
+
+                # Combine entries with optional LLM synthesis
+                combined_review = "\n\n".join(literature_entries)
+                
+                # Optional coherence enhancement
+                if len(literature_entries) > 3:
+                    combined_review = enhance_coherence(combined_review)
+
+                st.subheader("Generated Literature Review")
+                st.markdown(combined_review, unsafe_allow_html=True)
+
             except Exception as e:
-                st.error(f"Generation Error: {str(e)}")
+                st.error(f"Error generating review: {str(e)}")
+def enhance_coherence(text):
+    """Improve flow between paragraphs using LLM"""
+    chat_messages = [
+        SystemMessage(content='You are an academic editor. Improve the flow between these paragraphs while preserving all key information.'),
+        HumanMessage(content=f"Make this literature review more cohesive:\n\n{text}")
+    ]
+    llm = ChatOpenAI(model_name='gpt-4')
+    return llm(chat_messages).content
 
 # --- Navigation ---
 pages = {
