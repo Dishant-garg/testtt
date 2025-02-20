@@ -32,7 +32,8 @@ if 'abstract' not in st.session_state:
 if 'keywords' not in st.session_state:
     st.session_state.keywords = ""
 
-nltk.data.path.append(os.path.expanduser("~/.nltk_data"))
+custom_nltk_path = os.path.join(os.getcwd(), "nltk_data")
+nltk.data.path.append(custom_nltk_path)
 
 # Set page config
 st.set_page_config(page_title="Research Literature Assistant", layout="wide")
