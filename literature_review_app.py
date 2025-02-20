@@ -72,7 +72,7 @@ def extractAbstract(text):
 
 def extractKeyword(text):
     chat_messages = [
-        SystemMessage(content='You are an expert assistant with expertise in extracting keywords from academic papers'),
+        SystemMessage(content='You are an expert assistant with expertise in extracting 5 most important keywords from academic papers'),
         HumanMessage(content=f'Extract keywords from this text. Return as comma-separated values or "no" if none found:\n\n{text}')
     ]
     llm = ChatOpenAI(model_name='gpt-4')
