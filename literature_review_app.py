@@ -32,9 +32,7 @@ if 'abstract' not in st.session_state:
 if 'keywords' not in st.session_state:
     st.session_state.keywords = ""
 
-# Download NLTK resources
-nltk.download('punkt')
-nltk.download('stopwords')
+nltk.data.path.append(os.path.expanduser("~/.nltk_data"))
 
 # Set page config
 st.set_page_config(page_title="Research Literature Assistant", layout="wide")
